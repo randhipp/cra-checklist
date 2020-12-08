@@ -4,25 +4,14 @@ import { getToken } from "../../Utils/Common";
 import Pagination from "react-js-pagination";
 import Loader from "react-loader-spinner";
 
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 import Table from "react-bootstrap/Table";
 
 import Card from "react-bootstrap/Card";
+import { CustomModal } from "./customModal";
 import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
-
-const Items = (props) => {
-  return (
-    <tr>
-      <td>
-        <a href={props.url}>{props.description}</a>
-      </td>
-      <td>{props.urgency}</td>
-      <td>{props.items ? props.items.length : null}</td>
-    </tr>
-  );
-};
 
 function GetChecklists(props) {
   const [checklists, setChecklists] = useState([]);
@@ -36,33 +25,33 @@ function GetChecklists(props) {
     setcurrentPage(pageNumber);
   };
 
-  useEffect(() => {
+  async function fetchData(currentPage) {
     const headers = {
-      authorization: "Bearer " + getToken(),
-    };
-
-    let URL = `https://checklists.wafvel.com/api/v1/checklists?page=${currentPage}&page_limit=10&include=items`;
-
-    async function fetchData() {
-      try {
-        let result = await ky.get(URL, { headers: headers }).json();
-        console.log(result.data);
-        setChecklists(result.data);
-        setdataCount(result.meta.total);
-        setpageCount(result.meta.total / 10);
-        setisLoaded(true);
-      } catch (error) {
-        setChecklists([]);
-        setisLoaded(true);
-      } 
+        authorization: "Bearer " + getToken(),
+      };
+  
+      let URL = `https://checklists.wafvel.com/api/v1/checklists?page=${currentPage}&page_limit=10&include=items`;
+    try {
+      let result = await ky.get(URL, { headers: headers }).json();
+      console.log(result.data);
+      setChecklists(result.data);
+      setdataCount(result.meta.total);
+      setpageCount(result.meta.total / 10);
+      setisLoaded(true);
+    } catch (error) {
+      setChecklists([]);
+      setisLoaded(true);
     }
-    fetchData();
+  }
+
+  useEffect(() => {
+    fetchData(currentPage);
   }, [currentPage]);
 
   return isLoaded ? (
     <div>
       <Card.Title>
-        Checklist <small>Page Count : {pageCount}</small>
+        Checklist <small>Page Count : {Math.ceil(pageCount)}</small>
       </Card.Title>
       <br></br>
       <Pagination
@@ -86,7 +75,8 @@ function GetChecklists(props) {
         <tbody>
           {checklists.map((checklist) => {
             return (
-              <Items
+              <CustomModal
+                data={checklist}
                 url={checklist.links.self}
                 description={checklist.attributes.description}
                 urgency={checklist.attributes.urgency}
@@ -100,19 +90,18 @@ function GetChecklists(props) {
     </div>
   ) : (
     <Container fluid>
-        <Row className="align-items-center">
-            <Col>
-              <Loader
-                type="ThreeDots"
-                color="#00BFFF"
-                height={100}
-                width={100}
-                timeout={2000} // 2 secs
-                />
-            </Col>
-        </Row>
+      <Row className="align-items-center">
+        <Col>
+          <Loader
+            type="ThreeDots"
+            color="#00BFFF"
+            height={100}
+            width={100}
+            timeout={2000} // 2 secs
+          />
+        </Col>
+      </Row>
     </Container>
-
   );
 }
 
