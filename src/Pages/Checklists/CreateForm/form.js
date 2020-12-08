@@ -9,6 +9,9 @@ import Row from 'react-bootstrap/Row';
 import Form from 'react-bootstrap/Form';
 import Button from 'react-bootstrap/Button';
 
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+
 function ChecklistForm(props) {
     const objectDomain = useFormInput('');
     const objectId = useFormInput('');
@@ -21,6 +24,8 @@ function ChecklistForm(props) {
 
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    const MySwal = withReactContent(Swal)
   
     const handleSubmit = async () => {
         setError(null);
@@ -52,7 +57,11 @@ function ChecklistForm(props) {
             }}).json();
             
             console.log(response)
-            
+            setLoading(false);
+            MySwal.fire({
+                title: <p>Checklist Created<br></br><code>{response.data.id} - {response.data.attributes.description}</code></p>,
+                }).then(() => window.location.reload())
+
         } catch (error) {
             console.log(error);
             setLoading(false);
@@ -68,39 +77,38 @@ function ChecklistForm(props) {
                 <Form>
                     <Form.Group controlId="formBasicObjectDomain">
                         <Form.Label>Object Domain</Form.Label>
-                        <Form.Control type="text" {...objectDomain} placeholder="Object Domain" />
+                        <Form.Control type="text" {...objectDomain} placeholder="Object Domain" required/>
                     </Form.Group>
                     <Form.Group controlId="formBasicObjectId">
                         <Form.Label>Object ID</Form.Label>
-                        <Form.Control type="text" {...objectId} placeholder="Object Id" />
+                        <Form.Control type="text" {...objectId} placeholder="Object Id" required/>
                     </Form.Group>
                     <Form.Group controlId="formBasicDescription">
                         <Form.Label>Description</Form.Label>
-                        <Form.Control type="text" {...description} placeholder="Checklist Description" />
+                        <Form.Control type="text" {...description} placeholder="Checklist Description" required/>
                     </Form.Group>
                     <Form.Group controlId="formBasicUrgency">
                         <Form.Label>Urgency</Form.Label>
-                        <Form.Control type="number" min="1" {...urgency} placeholder="Checklist Urgency" />
+                        <Form.Control type="number" min="1" {...urgency} placeholder="Checklist Urgency" required/>
                     </Form.Group>
                     <Form.Group controlId="formBasicTaskId">
                         <Form.Label>Task ID</Form.Label>
-                        <Form.Control type="number" min="1" {...taskId} placeholder="Task Id" />
+                        <Form.Control type="number" min="1" {...taskId} placeholder="Task Id" required/>
                     </Form.Group>
                     <Form.Group controlId="formBasicDueDate">
                         <Form.Label>Due Date</Form.Label>
-                        <Form.Control type="date" {...dueDate} placeholder="Due" />
+                        <Form.Control type="date" {...dueDate} placeholder="Due" required/>
                     </Form.Group>
                     <Form.Group controlId="formBasicDueTime">
                         <Form.Label>Due Time</Form.Label>
-                        <Form.Control type="time" {...dueTime} placeholder="Due" />
+                        <Form.Control type="time" {...dueTime} placeholder="Due" required/>
                     </Form.Group>
                     <Form.Group controlId="formBasicItems">
                         <Form.Label>Items</Form.Label>
-                        <Form.Control type="string" {...items} placeholder="Items" />
+                        <Form.Control type="string" {...items} placeholder="Items" required/>
                     </Form.Group>
                     <Button 
                     variant="primary" 
-                    type="submit" 
                     onClick={handleSubmit} 
                     disabled={loading}
                     >{loading ? 'Saving...' : 'Submit'}</Button>
