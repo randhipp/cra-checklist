@@ -1,89 +1,119 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ky from "ky";
 import { getToken } from "../../Utils/Common";
 import Pagination from "react-js-pagination";
+import Loader from "react-loader-spinner";
 
-const NewsCard = (props) => {
-	return (
-		<div style={{ padding: '20' }}>
-			<a href={props.url}>
-				{props.description}
-			</a>
-		</div>
-	);
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
+import Table from "react-bootstrap/Table";
+
+import Card from "react-bootstrap/Card";
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+
+const Items = (props) => {
+  return (
+    <tr>
+      <td>
+        <a href={props.url}>{props.description}</a>
+      </td>
+      <td>{props.urgency}</td>
+      <td>{props.items ? props.items.length : null}</td>
+    </tr>
+  );
 };
 
 function GetChecklists(props) {
-    const [checklists, setChecklists] = useState([]);
-    const [dataCount, setdataCount] = useState(0); 
-    const [pageCount, setpageCount] = useState(0); 
-    const [isLoaded, setisLoaded] = useState(false);
-    const [currentPage, setcurrentPage] = useState(1);
+  const [checklists, setChecklists] = useState([]);
+  const [dataCount, setdataCount] = useState(0);
+  const [pageCount, setpageCount] = useState(0);
+  const [isLoaded, setisLoaded] = useState(false);
+  const [currentPage, setcurrentPage] = useState(1);
 
+  const handlePageChange = (pageNumber) => {
+    setisLoaded(false);
+    setcurrentPage(pageNumber);
+  };
+
+  useEffect(() => {
     const headers = {
-        authorization: "Bearer " + getToken(),
+      authorization: "Bearer " + getToken(),
     };
 
-    const handlePageChange = (pageNumber) => {
-        console.log(`active page is ${pageNumber}`);
-        setcurrentPage(pageNumber);
-        setisLoaded(false)
-        // handleFetch();
-    }   
+    let URL = `https://checklists.wafvel.com/api/v1/checklists?page=${currentPage}&page_limit=10&include=items`;
 
-    let URL = `https://checklists.wafvel.com/api/v1/checklists?page=${currentPage}&page_limit=10`;
-
-    async function handleFetch() {
-        try {
-            setisLoaded(true);
-            let result = await ky.get(URL, {headers: headers}).json();
-            setChecklists(result.data);
-            setdataCount(result.meta.total);
-            setpageCount(result.meta.total/10);
-        } catch (error) {
-            setChecklists([]);
-            setisLoaded(true);
-        }       
-    }
-
-    const loadData = () => {
+    async function fetchData() {
+      try {
+        let result = await ky.get(URL, { headers: headers }).json();
+        console.log(result.data);
+        setChecklists(result.data);
+        setdataCount(result.meta.total);
+        setpageCount(result.meta.total / 10);
         setisLoaded(true);
-        handleFetch();
+      } catch (error) {
+        setChecklists([]);
+        setisLoaded(true);
+      } 
     }
+    fetchData();
+  }, [currentPage]);
 
-    // if(!isLoaded && currentPage === 1){
-    //     handleFetch();
-    //     setisLoaded(true);
-    // }
-    
-    return (
-        <div>
-           <label>Checklist</label>
+  return isLoaded ? (
+    <div>
+      <Card.Title>
+        Checklist <small>Page Count : {pageCount}</small>
+      </Card.Title>
+      <br></br>
+      <Pagination
+        activePage={currentPage}
+        itemsCountPerPage={10}
+        totalItemsCount={dataCount}
+        pageRangeDisplayed={3}
+        onChange={handlePageChange}
+        itemClass="page-item"
+        linkClass="page-link"
+      />
 
-			{isLoaded ? (
-				checklists.map((checklist) => {
-					return (
-						<NewsCard
-                            url={checklist.links.self}
-                            description={checklist.attributes.description}
-							key={checklist.id}
-						/>
-					);
-				})
-			) : loadData()}    
-                       
-			{isLoaded ? (
-				<Pagination
-                activePage={currentPage}
-                itemsCountPerPage={10}
-                totalItemsCount={dataCount}
-                pageRangeDisplayed={3}
-                onChange={handlePageChange}
+      <Table bordered hover>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Urgency</th>
+            <th>Items</th>
+          </tr>
+        </thead>
+        <tbody>
+          {checklists.map((checklist) => {
+            return (
+              <Items
+                url={checklist.links.self}
+                description={checklist.attributes.description}
+                urgency={checklist.attributes.urgency}
+                items={checklist.attributes.items}
+                key={checklist.id}
               />
-			) : <div></div>
-            } 
-        </div>
-      );
+            );
+          })}
+        </tbody>
+      </Table>
+    </div>
+  ) : (
+    <Container fluid>
+        <Row className="align-items-center">
+            <Col>
+              <Loader
+                type="ThreeDots"
+                color="#00BFFF"
+                height={100}
+                width={100}
+                timeout={2000} // 2 secs
+                />
+            </Col>
+        </Row>
+    </Container>
+
+  );
 }
 
 export default GetChecklists;
