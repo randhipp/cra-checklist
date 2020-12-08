@@ -12,6 +12,10 @@ Consuming laravel API backend at https://checklists.wafvel.com/
 
 Dev app should be accessible in localhost:3000
 
+#### Live Dev
+
+This project currently live at [http://cra-checklist.wafvel.com:8880](http://cra-checklist.wafvel.com:8880)
+
 #### Credentials
 
 This App protected using Token based Auth ( Laravel Sanctum )
